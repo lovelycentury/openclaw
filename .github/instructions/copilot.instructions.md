@@ -4,6 +4,8 @@
 > Read it for: project structure, build/test/lint commands, coding style,
 > naming conventions, commit guidelines, testing, release workflows, and
 > multi-agent safety rules. Do not duplicate that content here.
+>
+> **Quick orientation:** `docs/ai/REPO_OVERVIEW.md`, `docs/ai/WORKFLOWS.md`, `docs/ai/ARCHITECTURE.md`.
 
 ## Anti-Redundancy Rules
 
