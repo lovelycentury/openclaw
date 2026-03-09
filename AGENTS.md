@@ -1,6 +1,18 @@
 # Repository Guidelines
 
 - Repo: https://github.com/openclaw/openclaw
+
+## Agent Documentation Hierarchy
+
+This file (`AGENTS.md`) is the **canonical source of truth** for all AI agents working on this repo.\
+`CLAUDE.md` is a symlink to this file. Subdirectory `AGENTS.md` files (e.g. `src/gateway/server-methods/AGENTS.md`) contain domain-specific notes and are additive.\
+`.github/instructions/copilot.instructions.md` contains **Copilot-specific** overrides only and references this file for shared conventions.\
+`CONTRIBUTING.md` is the human contributor guide.\
+`docs/ai/` contains quick-reference files (`REPO_OVERVIEW.md`, `WORKFLOWS.md`, `ARCHITECTURE.md`) for rapid agent orientation; `USER_NOTES.md` in that directory is user-owned and not project policy.\
+Do not duplicate shared guidance across these files — always reference this file instead.
+
+---
+
 - In chat replies, file references must be repo-root relative only (example: `extensions/bluebubbles/src/channel.ts:80`); never absolute paths or `~/...`.
 - GitHub issues/comments/PR comments: use literal multiline strings or `-F - <<'EOF'` (or $'...') for real newlines; never embed "\\n".
 - GitHub comment footgun: never use `gh issue/pr comment -b "..."` when body contains backticks or shell chars. Always use single-quoted heredoc (`-F - <<'EOF'`) so no command substitution/escaping corruption.
@@ -206,7 +218,7 @@
 - Lobster seam: use the shared CLI palette in `src/terminal/palette.ts` (no hardcoded colors); apply palette to onboarding/config prompts and other TTY UI output as needed.
 - **Multi-agent safety:** focus reports on your edits; avoid guard-rail disclaimers unless truly blocked; when multiple agents touch the same file, continue if safe; end with a brief “other files present” note only if relevant.
 - Bug investigations: read source code of relevant npm dependencies and all related local code before concluding; aim for high-confidence root cause.
-- Code style: add brief comments for tricky logic; keep files under ~500 LOC when feasible (split/refactor as needed).
+- Code style: add brief comments for tricky logic; keep files under ~700 LOC (see Coding Style section); split/refactor when it improves clarity or testability.
 - Tool schema guardrails (google-antigravity): avoid `Type.Union` in tool input schemas; no `anyOf`/`oneOf`/`allOf`. Use `stringEnum`/`optionalStringEnum` (Type.Unsafe enum) for string lists, and `Type.Optional(...)` instead of `... | null`. Keep top-level tool schema as `type: "object"` with `properties`.
 - Tool schema guardrails: avoid raw `format` property names in tool schemas; some validators treat `format` as a reserved keyword and reject the schema.
 - When asked to open a “session” file, open the Pi session logs under `~/.openclaw/agents/<agentId>/sessions/*.jsonl` (use the `agent=<id>` value in the Runtime line of the system prompt; newest unless a specific ID is given), not the default `sessions.json`. If logs are needed from another machine, SSH via Tailscale and read the same path there.
