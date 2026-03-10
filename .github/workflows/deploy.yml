@@ -35,12 +35,13 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
-          envs: OPENCLAW_GATEWAY_TOKEN,TELEGRAM_BOT_TOKEN
+          envs: OPENCLAW_GATEWAY_TOKEN,TELEGRAM_BOT_TOKEN,OPENAI_API_KEY
           script: |
             cd ~/services
             cat > .env.secrets << EOF
             OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
             TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+            OPENAI_API_KEY=${OPENAI_API_KEY}
             EOF
             grep -v -f <(cut -d= -f1 .env.secrets | sed 's/^/^/;s/$/=/') .env 2>/dev/null > .env.tmp || true
             cat .env.tmp .env.secrets > .env
