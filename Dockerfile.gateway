@@ -1,8 +1,7 @@
-# Build from source so OPENCLAW_INSTALL_BROWSER and OPENCLAW_INSTALL_DOCKER_CLI work
 ARG OPENCLAW_INSTALL_BROWSER=""
 ARG OPENCLAW_INSTALL_DOCKER_CLI=""
 
-FROM ghcr.io/openclaw/openclaw:latest AS base
+FROM ghcr.io/openclaw/openclaw:latest
 
 USER root
 RUN apt-get update && \
@@ -20,14 +19,23 @@ RUN apt-get update && \
       # process tools
       procps && \
     pip install --break-system-packages openai-whisper && \
-    if [ -n "$OPENCLAW_INSTALL_BROWSER" ]; then \
+    # v0.dev CLI — UI component generation from prompts
+    npm install -g v0 && \
+    # Tokens Studio CLI — design token export/transform pipeline
+    npm install -g @tokens-studio/sd-transforms style-dictionary && \
+    rm -rf /var/lib/apt/lists/*
+
+ARG OPENCLAW_INSTALL_BROWSER
+RUN if [ -n "$OPENCLAW_INSTALL_BROWSER" ]; then \
       npx --yes playwright install --with-deps chromium; \
-    fi && \
-    if [ -n "$OPENCLAW_INSTALL_DOCKER_CLI" ]; then \
+    fi
+
+ARG OPENCLAW_INSTALL_DOCKER_CLI
+RUN if [ -n "$OPENCLAW_INSTALL_DOCKER_CLI" ]; then \
       curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker.gpg && \
       echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list && \
       apt-get update && apt-get install -y --no-install-recommends docker-ce-cli && \
       rm -rf /var/lib/apt/lists/*; \
-    fi && \
-    rm -rf /var/lib/apt/lists/*
+    fi
+
 USER node

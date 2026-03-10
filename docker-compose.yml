@@ -14,6 +14,10 @@ services:
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # Figma REST API — personal access token from figma.com/settings
+      FIGMA_TOKEN: ${FIGMA_TOKEN:-}
+      # v0.dev CLI — API key from v0.dev/settings (non-interactive auth)
+      V0_TOKEN: ${V0_TOKEN:-}
     volumes:
       - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
