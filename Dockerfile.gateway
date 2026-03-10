@@ -1,0 +1,20 @@
+FROM ghcr.io/openclaw/openclaw:latest
+
+USER root
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      # audio/video processing (voice messages, media)
+      ffmpeg \
+      # python + whisper (local speech-to-text fallback)
+      python3-pip python3-venv python3-dev \
+      # common shell tools
+      jq curl git wget unzip \
+      # build tools (some npm packages need them)
+      build-essential \
+      # timezone support
+      tzdata \
+      # process tools
+      procps && \
+    pip install --break-system-packages openai-whisper && \
+    rm -rf /var/lib/apt/lists/*
+USER node
