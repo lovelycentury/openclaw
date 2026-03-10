@@ -310,6 +310,41 @@ Make sure your proxy:
 - Passes the identity headers on WebSocket upgrade requests (not just HTTP)
 - Doesn't have a separate auth path for WebSocket connections
 
+### Caddy + HTTP/2: WebSocket Upgrade Fails (101 Never Received)
+
+If you're using **Caddy as your reverse proxy** and WebSocket connections never complete the upgrade (the client hangs or the Control UI/Mac app never connects), the cause may be Caddy's default HTTP/2 behavior.
+
+**Symptom:** `curl` or the OpenClaw Mac app connects to the TLS endpoint, but the `101 Switching Protocols` response is never received. No error — just silence or a timeout.
+
+**Root cause:** Caddy serves HTTPS via HTTP/2 by default. HTTP/2 does not support the `Upgrade` mechanism used by WebSockets (RFC 7540 §8.1). Requests arrive over HTTP/2 and the upgrade silently fails.
+
+**Fix:** Add a `servers` global block to your `Caddyfile` to force HTTP/1.1 + h2c (HTTP/2 over cleartext, for internal upstream only):
+
+```caddy
+{
+  servers {
+    protocols h1 h2c
+  }
+}
+
+claw.example.com {
+  @websocket {
+    header Connection *Upgrade*
+    header Upgrade websocket
+  }
+  handle @websocket {
+    reverse_proxy openclaw-gateway:18789
+  }
+  handle {
+    reverse_proxy oauth2-proxy:4180
+  }
+}
+```
+
+This disables HTTP/2 over TLS for Caddy's listener, falling back to HTTP/1.1 for external connections while still allowing h2c internally. After reloading Caddy (`caddy reload`), the WebSocket upgrade completes normally and you should receive `HTTP/1.1 101 Switching Protocols`.
+
+> **Note:** This affects all sites in the Caddyfile, not just the OpenClaw vhost. If you need HTTP/2 for other services on the same Caddy instance, consider running a separate Caddy instance or using a per-site TLS policy.
+
 ## Migration from Token Auth
 
 If you're moving from token auth to trusted-proxy:
