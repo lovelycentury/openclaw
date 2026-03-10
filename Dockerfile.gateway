@@ -18,7 +18,7 @@ RUN apt-get update && \
       tzdata \
       # process tools
       procps && \
-    pip install --break-system-packages openai-whisper && \
+    pip install --break-system-packages faster-whisper && \
     # v0.dev CLI — UI component generation from prompts
     npm install -g v0 && \
     # Tokens Studio CLI — design token export/transform pipeline
