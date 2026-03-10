@@ -18,6 +18,8 @@ services:
       FIGMA_TOKEN: ${FIGMA_TOKEN:-}
       # v0.dev CLI — API key from v0.dev/settings (non-interactive auth)
       V0_TOKEN: ${V0_TOKEN:-}
+      GH_TOKEN_PRIVAT: ${GH_TOKEN_PRIVAT:-}
+      GH_TOKEN_PUBLIC: ${GH_TOKEN_PUBLIC:-}
     volumes:
       - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
