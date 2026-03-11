@@ -20,6 +20,7 @@ services:
       V0_TOKEN: ${V0_TOKEN:-}
       GH_TOKEN_PRIVAT: ${GH_TOKEN_PRIVAT:-}
       GH_TOKEN_PUBLIC: ${GH_TOKEN_PUBLIC:-}
+      CLAW_PERPLEXITY: ${CLAW_PERPLEXITY:-}
     volumes:
       - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
