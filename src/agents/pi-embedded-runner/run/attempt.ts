@@ -59,6 +59,7 @@ import { createOpenAIWebSocketStreamFn, releaseWsSession } from "../../openai-ws
 import { resolveOwnerDisplaySetting } from "../../owner-display.js";
 import {
   downgradeOpenAIFunctionCallReasoningPairs,
+  sanitizeOpenAIResponsesItemIds,
   isCloudCodeAssistFormatError,
   resolveBootstrapMaxChars,
   resolveBootstrapPromptTruncationWarningMode,
@@ -1359,7 +1360,10 @@ export async function runEmbeddedAttempt(
           if (!Array.isArray(messages)) {
             return inner(model, context, options);
           }
-          const sanitized = downgradeOpenAIFunctionCallReasoningPairs(messages as AgentMessage[]);
+          let sanitized = downgradeOpenAIFunctionCallReasoningPairs(messages as AgentMessage[]);
+          // Sanitize fc_* itemId chars — some providers (e.g. GitHub Copilot) return
+          // IDs with dots that OpenAI rejects with HTTP 400 on replay.
+          sanitized = sanitizeOpenAIResponsesItemIds(sanitized);
           if (sanitized === messages) {
             return inner(model, context, options);
           }

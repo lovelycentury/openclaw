@@ -268,3 +268,95 @@ export function downgradeOpenAIReasoningBlocks(messages: AgentMessage[]): AgentM
 
   return out;
 }
+
+/**
+ * Sanitize the itemId portion of OpenAI Responses tool call IDs.
+ *
+ * IDs are stored as `callId|itemId`. The itemId (an fc_* value from OpenAI)
+ * must only contain [A-Za-z0-9_-] when replayed in the Responses API.
+ * Some providers (e.g. GitHub Copilot) return IDs with dots or other chars
+ * that OpenAI rejects with HTTP 400. Replace any invalid characters with
+ * underscores so replay always succeeds.
+ */
+export function sanitizeOpenAIResponsesItemIds(messages: AgentMessage[]): AgentMessage[] {
+  const sanitize = (id: string): string => {
+    const { callId, itemId } = splitOpenAIFunctionCallPairing(id);
+    if (!itemId) {
+      return id;
+    }
+    const sanitizedItemId = itemId.replace(/[^a-zA-Z0-9_-]/g, "_");
+    if (sanitizedItemId === itemId) {
+      return id;
+    }
+    return `${callId}|${sanitizedItemId}`;
+  };
+
+  let changed = false;
+  const out = messages.map((msg) => {
+    if (!msg || typeof msg !== "object") {
+      return msg;
+    }
+
+    const role = (msg as { role?: unknown }).role;
+
+    if (role === "assistant") {
+      const assistantMsg = msg as Extract<AgentMessage, { role: "assistant" }>;
+      if (!Array.isArray(assistantMsg.content)) {
+        return msg;
+      }
+      let contentChanged = false;
+      const nextContent = assistantMsg.content.map((block) => {
+        if (!block || typeof block !== "object") {
+          return block;
+        }
+        const rec = block as OpenAIToolCallBlock;
+        if (!isOpenAIToolCallType(rec.type) || typeof rec.id !== "string") {
+          return block;
+        }
+        const nextId = sanitize(rec.id);
+        if (nextId === rec.id) {
+          return block;
+        }
+        contentChanged = true;
+        return { ...(block as unknown as Record<string, unknown>), id: nextId } as typeof block;
+      });
+      if (!contentChanged) {
+        return msg;
+      }
+      changed = true;
+      return { ...assistantMsg, content: nextContent } as AgentMessage;
+    }
+
+    if (role === "toolResult") {
+      const toolResult = msg as Extract<AgentMessage, { role: "toolResult" }> & {
+        toolUseId?: unknown;
+      };
+      let resultChanged = false;
+      const updates: Record<string, string> = {};
+      if (typeof toolResult.toolCallId === "string") {
+        const next = sanitize(toolResult.toolCallId);
+        if (next !== toolResult.toolCallId) {
+          updates.toolCallId = next;
+          resultChanged = true;
+        }
+      }
+      const toolUseId = toolResult.toolUseId;
+      if (typeof toolUseId === "string") {
+        const next = sanitize(toolUseId);
+        if (next !== toolUseId) {
+          updates.toolUseId = next;
+          resultChanged = true;
+        }
+      }
+      if (!resultChanged) {
+        return msg;
+      }
+      changed = true;
+      return { ...toolResult, ...updates } as AgentMessage;
+    }
+
+    return msg;
+  });
+
+  return changed ? out : messages;
+}
