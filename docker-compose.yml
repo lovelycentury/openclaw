@@ -7,6 +7,7 @@ services:
     environment:
       HOME: /home/node
       TERM: xterm-256color
+      NODE_OPTIONS: --dns-result-order=ipv4first
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
       OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: ${OPENCLAW_ALLOW_INSECURE_PRIVATE_WS:-}
       CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}
