@@ -1,7 +1,8 @@
 ARG OPENCLAW_INSTALL_BROWSER=""
 ARG OPENCLAW_INSTALL_DOCKER_CLI=""
+ARG BASE_IMAGE=ghcr.io/openclaw/openclaw:latest
 
-FROM ghcr.io/openclaw/openclaw:latest
+FROM ${BASE_IMAGE}
 
 USER root
 RUN apt-get update && \

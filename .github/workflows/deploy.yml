@@ -25,12 +25,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Docker image
+      - name: Build base image from source
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/openclaw:base
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push gateway image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile.gateway
           build-args: |
+            BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/openclaw:base
             OPENCLAW_INSTALL_BROWSER=1
             OPENCLAW_INSTALL_DOCKER_CLI=1
           push: true
