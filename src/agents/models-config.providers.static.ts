@@ -527,3 +527,68 @@ export function buildKilocodeProvider(): ProviderConfig {
     })),
   };
 }
+
+const PERPLEXITY_BASE_URL = "https://api.perplexity.ai";
+export const PERPLEXITY_DEFAULT_MODEL_ID = "sonar";
+
+// Perplexity Sonar models (online search-augmented). Pricing per million tokens (USD).
+// See https://docs.perplexity.ai/guides/model-cards
+const PERPLEXITY_MODEL_CATALOG: ReadonlyArray<ProviderModelConfig> = [
+  {
+    id: "sonar",
+    name: "Perplexity Sonar",
+    reasoning: false,
+    input: ["text"],
+    cost: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 200_000,
+    maxTokens: 8_192,
+  },
+  {
+    id: "sonar-pro",
+    name: "Perplexity Sonar Pro",
+    reasoning: false,
+    input: ["text"],
+    cost: { input: 3, output: 15, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 200_000,
+    maxTokens: 8_192,
+  },
+  {
+    id: "sonar-reasoning-pro",
+    name: "Perplexity Sonar Reasoning Pro",
+    reasoning: true,
+    input: ["text"],
+    cost: { input: 2, output: 8, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 128_000,
+    maxTokens: 8_192,
+  },
+  {
+    // Expert-level research model — exhaustive multi-step web search + synthesis.
+    // Billed additionally per search query and citation tokens; see Perplexity pricing docs.
+    id: "sonar-deep-research",
+    name: "Perplexity Sonar Deep Research",
+    reasoning: true,
+    input: ["text"],
+    cost: { input: 2, output: 8, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 128_000,
+    maxTokens: 8_192,
+  },
+  {
+    // DeepSeek R1 without Perplexity search grounding (offline reasoning only).
+    id: "r1-1776",
+    name: "Perplexity R1-1776 (DeepSeek R1)",
+    reasoning: true,
+    input: ["text"],
+    cost: { input: 2, output: 8, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 128_000,
+    maxTokens: 128_000,
+  },
+];
+
+export function buildPerplexityProvider(): ProviderConfig {
+  // Perplexity Chat Completions API is OpenAI-compatible.
+  return {
+    baseUrl: PERPLEXITY_BASE_URL,
+    api: "openai-completions",
+    models: PERPLEXITY_MODEL_CATALOG.map((model) => ({ ...model })),
+  };
+}

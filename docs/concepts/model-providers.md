@@ -165,6 +165,49 @@ See [/providers/kilocode](/providers/kilocode) for setup details.
   - OpenAI-compatible base URL: `https://api.cerebras.ai/v1`.
 - GitHub Copilot: `github-copilot` (`COPILOT_GITHUB_TOKEN` / `GH_TOKEN` / `GITHUB_TOKEN`)
 - Hugging Face Inference: `huggingface` (`HUGGINGFACE_HUB_TOKEN` or `HF_TOKEN`) — OpenAI-compatible router; example model: `huggingface/deepseek-ai/DeepSeek-R1`; CLI: `openclaw onboard --auth-choice huggingface-api-key`. See [Hugging Face (Inference)](/providers/huggingface).
+- Perplexity: `perplexity` (`PERPLEXITY_API_KEY`) — online search-augmented chat models. Example model: `perplexity/sonar-pro`. See [Perplexity](#perplexity) below.
+
+## Perplexity
+
+Perplexity provides online search-augmented chat completions via an OpenAI-compatible API.
+
+- Provider: `perplexity`
+- Auth: `PERPLEXITY_API_KEY`
+- API key: [https://www.perplexity.ai/settings/api](https://www.perplexity.ai/settings/api)
+
+Set the environment variable and OpenClaw will auto-detect the provider:
+
+```bash
+export PERPLEXITY_API_KEY="pplx-..."
+```
+
+Or set it in `openclaw.json`:
+
+```json5
+{
+  env: { PERPLEXITY_API_KEY: "pplx-..." },
+  agents: {
+    defaults: { model: { primary: "perplexity/sonar-pro" } },
+  },
+}
+```
+
+CLI:
+
+```bash
+openclaw config set agents.defaults.model.primary perplexity/sonar-pro
+openclaw models list
+```
+
+Available models:
+
+| Model ref                        | Description           | Context | Notes                                                             |
+| -------------------------------- | --------------------- | ------- | ----------------------------------------------------------------- |
+| `perplexity/sonar`               | Sonar (lightweight)   | 200k    | Online search                                                     |
+| `perplexity/sonar-pro`           | Sonar Pro             | 200k    | Online search, higher quality                                     |
+| `perplexity/sonar-reasoning-pro` | Sonar Reasoning Pro   | 128k    | Thinking + online search                                          |
+| `perplexity/sonar-deep-research` | Sonar Deep Research   | 128k    | Exhaustive multi-step web research; billed additionally per query |
+| `perplexity/r1-1776`             | R1-1776 (DeepSeek R1) | 128k    | Offline reasoning only, no search                                 |
 
 ## Providers via `models.providers` (custom/base URL)
 
