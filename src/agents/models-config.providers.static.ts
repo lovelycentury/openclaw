@@ -532,7 +532,10 @@ const PERPLEXITY_BASE_URL = "https://api.perplexity.ai";
 export const PERPLEXITY_DEFAULT_MODEL_ID = "sonar";
 
 // Perplexity Sonar models (online search-augmented). Pricing per million tokens (USD).
+// Perplexity does not support tool/function calling — supportsTools: false is required.
 // See https://docs.perplexity.ai/guides/model-cards
+const PERPLEXITY_COMPAT = { supportsTools: false, supportsDeveloperRole: false } as const;
+
 const PERPLEXITY_MODEL_CATALOG: ReadonlyArray<ProviderModelConfig> = [
   {
     id: "sonar",
@@ -542,6 +545,7 @@ const PERPLEXITY_MODEL_CATALOG: ReadonlyArray<ProviderModelConfig> = [
     cost: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 },
     contextWindow: 200_000,
     maxTokens: 8_192,
+    compat: PERPLEXITY_COMPAT,
   },
   {
     id: "sonar-pro",
@@ -551,6 +555,7 @@ const PERPLEXITY_MODEL_CATALOG: ReadonlyArray<ProviderModelConfig> = [
     cost: { input: 3, output: 15, cacheRead: 0, cacheWrite: 0 },
     contextWindow: 200_000,
     maxTokens: 8_192,
+    compat: PERPLEXITY_COMPAT,
   },
   {
     id: "sonar-reasoning-pro",
@@ -560,6 +565,7 @@ const PERPLEXITY_MODEL_CATALOG: ReadonlyArray<ProviderModelConfig> = [
     cost: { input: 2, output: 8, cacheRead: 0, cacheWrite: 0 },
     contextWindow: 128_000,
     maxTokens: 8_192,
+    compat: PERPLEXITY_COMPAT,
   },
   {
     // Expert-level research model — exhaustive multi-step web search + synthesis.
@@ -571,6 +577,7 @@ const PERPLEXITY_MODEL_CATALOG: ReadonlyArray<ProviderModelConfig> = [
     cost: { input: 2, output: 8, cacheRead: 0, cacheWrite: 0 },
     contextWindow: 128_000,
     maxTokens: 8_192,
+    compat: PERPLEXITY_COMPAT,
   },
   {
     // DeepSeek R1 without Perplexity search grounding (offline reasoning only).
@@ -581,6 +588,7 @@ const PERPLEXITY_MODEL_CATALOG: ReadonlyArray<ProviderModelConfig> = [
     cost: { input: 2, output: 8, cacheRead: 0, cacheWrite: 0 },
     contextWindow: 128_000,
     maxTokens: 128_000,
+    compat: PERPLEXITY_COMPAT,
   },
 ];
 
