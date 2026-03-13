@@ -10,6 +10,7 @@ actor MacNodeRuntime {
     private var cachedMainActorServices: (any MacNodeRuntimeMainActorServices)?
     private var mainSessionKey: String = "main"
     private var eventSender: (@Sendable (String, String?) async -> Void)?
+    private var canvasCapabilityRefresh: (@Sendable () async -> String?)?
 
     init(
         makeMainActorServices: @escaping () async -> any MacNodeRuntimeMainActorServices = {
@@ -31,6 +32,10 @@ actor MacNodeRuntime {
 
     func setEventSender(_ sender: (@Sendable (String, String?) async -> Void)?) {
         self.eventSender = sender
+    }
+
+    func setCanvasCapabilityRefresh(_ refresh: (@Sendable () async -> String?)?) {
+        self.canvasCapabilityRefresh = refresh
     }
 
     func handleInvoke(_ req: BridgeInvokeRequest) async -> BridgeInvokeResponse {
@@ -411,7 +416,11 @@ actor MacNodeRuntime {
 
     private func ensureA2UIHost() async throws {
         if await self.isA2UIReady() { return }
-        guard let a2uiUrl = await self.resolveA2UIHostUrl() else {
+        // Prefer a fresh capability token; the snapshot URL may carry an expired token.
+        // Note: ?? cannot be used with two async calls in Swift; evaluate sequentially.
+        var a2uiUrl = await self.freshA2UIHostUrl()
+        if a2uiUrl == nil { a2uiUrl = await self.resolveA2UIHostUrl() }
+        guard let a2uiUrl else {
             throw NSError(domain: "Canvas", code: 30, userInfo: [
                 NSLocalizedDescriptionKey: "A2UI_HOST_NOT_CONFIGURED: gateway did not advertise canvas host",
             ])
@@ -424,6 +433,16 @@ actor MacNodeRuntime {
         throw NSError(domain: "Canvas", code: 31, userInfo: [
             NSLocalizedDescriptionKey: "A2UI_HOST_UNAVAILABLE: A2UI host not reachable",
         ])
+    }
+
+    /// Ask the node session for a fresh capability token and return the resolved A2UI URL.
+    /// Returns nil when no refresh hook is set or the refresh yields no URL.
+    private func freshA2UIHostUrl() async -> String? {
+        guard let refresh = self.canvasCapabilityRefresh else { return nil }
+        guard let raw = await refresh() else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let baseUrl = URL(string: trimmed) else { return nil }
+        return baseUrl.appendingPathComponent("__openclaw__/a2ui/").absoluteString + "?platform=macos"
     }
 
     private func resolveA2UIHostUrl() async -> String? {

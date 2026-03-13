@@ -90,10 +90,16 @@ final class MacNodeModeCoordinator {
                             guard let self else { return }
                             await self.session.sendEvent(event: event, payloadJSON: payload)
                         }
+                        await self.runtime.setCanvasCapabilityRefresh { [weak self] in
+                            guard let self else { return nil }
+                            await self.session.refreshNodeCanvasCapability()
+                            return await self.session.currentCanvasHostUrl()
+                        }
                     },
                     onDisconnected: { [weak self] reason in
                         guard let self else { return }
                         await self.runtime.setEventSender(nil)
+                        await self.runtime.setCanvasCapabilityRefresh(nil)
                         self.logger.error("mac node disconnected: \(reason, privacy: .public)")
                     },
                     onInvoke: { [weak self] req in
