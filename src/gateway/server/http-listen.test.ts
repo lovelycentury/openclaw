@@ -15,14 +15,18 @@ type ListenOutcome = { kind: "error"; code: string } | { kind: "listening" };
 function createFakeHttpServer(outcomes: ListenOutcome[]) {
   class FakeHttpServer extends EventEmitter {
     public closeCalls = 0;
+    public lastListenArgs: unknown[] = [];
     private attempt = 0;
 
-    listen(_port: number, _host: string) {
+    listen(...args: unknown[]) {
+      this.lastListenArgs = args;
       const outcome = outcomes[this.attempt] ?? { kind: "listening" };
       this.attempt += 1;
       setImmediate(() => {
         if (outcome.kind === "error") {
-          const err = Object.assign(new Error(outcome.code), { code: outcome.code });
+          const err = Object.assign(new Error(outcome.code), {
+            code: outcome.code,
+          });
           this.emit("error", err);
         } else {
           this.emit("listening");
@@ -96,5 +100,41 @@ describe("listenGatewayHttpServer", () => {
     ).rejects.toBeInstanceOf(GatewayLockError);
 
     expect(fake.closeCalls).toBe(0);
+  });
+
+  it("uses inherited listen fd when LISTEN_FD is set", async () => {
+    sleepMock.mockClear();
+    const fake = createFakeHttpServer([{ kind: "listening" }]);
+    vi.stubEnv("LISTEN_FD", "12");
+    try {
+      await expect(
+        listenGatewayHttpServer({
+          httpServer: fake as unknown as HttpServer,
+          bindHost: "127.0.0.1",
+          port: 18789,
+        }),
+      ).resolves.toBeUndefined();
+      expect(fake.lastListenArgs).toEqual([{ fd: 12 }]);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("falls back to host/port listen when LISTEN_FD is invalid", async () => {
+    sleepMock.mockClear();
+    const fake = createFakeHttpServer([{ kind: "listening" }]);
+    vi.stubEnv("LISTEN_FD", "not-a-number");
+    try {
+      await expect(
+        listenGatewayHttpServer({
+          httpServer: fake as unknown as HttpServer,
+          bindHost: "127.0.0.1",
+          port: 18789,
+        }),
+      ).resolves.toBeUndefined();
+      expect(fake.lastListenArgs).toEqual([18789, "127.0.0.1"]);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });
