@@ -21,6 +21,12 @@ export async function listenGatewayHttpServer(params: {
   port: number;
 }) {
   const { httpServer, bindHost, port } = params;
+  const listenFdRaw = process.env.LISTEN_FD;
+  const listenFd =
+    typeof listenFdRaw === "string" && listenFdRaw.trim().length > 0
+      ? Number.parseInt(listenFdRaw, 10)
+      : Number.NaN;
+  const hasValidListenFd = Number.isInteger(listenFd) && listenFd >= 0;
 
   for (let attempt = 0; ; attempt++) {
     try {
@@ -35,6 +41,10 @@ export async function listenGatewayHttpServer(params: {
         };
         httpServer.once("error", onError);
         httpServer.once("listening", onListening);
+        if (hasValidListenFd) {
+          httpServer.listen({ fd: listenFd });
+          return;
+        }
         httpServer.listen(port, bindHost);
       });
       return; // bound successfully
